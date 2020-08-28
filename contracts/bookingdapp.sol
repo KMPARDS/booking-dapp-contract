@@ -1,5 +1,6 @@
 pragma solidity ^0.6.11;
 
+import './KycDapp.sol';
 /**
 * Title OpenEvents
 * It is a main contract that provides ability to create events and view information about events 
@@ -39,16 +40,6 @@ contract OpenEvents {
     
     event SoldTicket(address indexed buyer, uint indexed eventId);
 	
-	/// KYC DApp
-    /// @notice if your platform needs to store user information like name, you can instead use KycDapp 
-    /// @dev https://github.com/KMPARDS/esn-contracts/blob/master/contracts/ESN/KycDapp/IKycDapp.sol
-    interface KycDapp
-    {
-        function isKycLevel1(address _wallet) external view returns (bool);
-
-        function isKycLevel2(address _wallet, address _platform) external view returns (bool);
-    }
-    
     modifier onlyKycApproved()
     {
         require(kycDappContract.isKycLevel1(msg.sender), 'KYC is not approved');
