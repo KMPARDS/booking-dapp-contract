@@ -1,10 +1,13 @@
 pragma solidity ^0.6.11;
 
 import './KycDapp.sol';
+import './daySwappers.sol';
 
 /**
 * Title OpenEvents
-* It is a main contract that provides ability to create events and view information about events 
+* It is a main contract that provides ability to create events and view information about events. 
+*It is a main contract that provides ability to buy tickets and view tickets.
+*It is a main contract that provides ability cancel tickets and events.
 */
 
 contract OpenEvents {
