@@ -1,6 +1,7 @@
 pragma solidity ^0.6.11;
 
 import './KycDapp.sol';
+
 /**
 * Title OpenEvents
 * It is a main contract that provides ability to create events and view information about events 
