@@ -14,7 +14,7 @@ contract BookingDappManager
     mapping(address => bool) public events;
     uint256 eventId = 0;
     
-    event NewEvent(uint256, address);
+    event NewEvent(uint256, address, address);
     
     constructor()
     {
@@ -43,7 +43,7 @@ contract BookingDappManager
         
         events[address(_newEvent)] = true;
         
-        emit NewEvent(eventId, address(_newEvent));
+        emit NewEvent(eventId, address(_newEvent), msg.sender);
     }
     
 }
