@@ -4,14 +4,18 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import './SafeMath.sol';
+import './BookingDappManager.sol';
 
 
 contract EventManager 
 {
     using SafeMath for uint256;
     
+    BookingDappManager public bookingDappManager;
+    
     address public eventOwner;
     string public eventName;
+    string public eventDesc;
     string public eventLocation;
     uint256 public eventStartTime;
     uint256 public seatTypes;
@@ -45,10 +49,21 @@ contract EventManager
     }
     
     
-    constructor(address _eventOwner, string memory _name, string memory _location, uint256 _startTime, uint256 _seatTypes, uint256[] memory _seatsPerType, uint256[] memory _pricePerType, uint256 _totalSeats)
+    modifier inTime()
     {
+        require(block.timestamp < eventStartTime, "Event has started no actions can be done now");
+        _;
+    }
+    
+    
+    constructor(address _eventOwner, string memory _name, string memory _desc, string memory _location, uint256 _startTime, uint256 _seatTypes, uint256[] memory _seatsPerType, uint256[] memory _pricePerType, uint256 _totalSeats)
+    {
+        
+        bookingDappManager = BookingDappManager(msg.sender);
+        
         eventOwner = _eventOwner;
         eventName = _name;
+        eventDesc = _desc;
         eventLocation = _location;
         eventStartTime = _startTime;
         seatTypes = _seatTypes;
@@ -77,7 +92,19 @@ contract EventManager
     }
     
     
-    function buyTicket(uint256[] memory seatNo/*, uint256 amt*/) eventExists public payable
+    function getSeats() view public returns(uint256[] memory)
+    {
+        return seatsPerType;
+    }
+    
+    
+    function getPrices() view public returns(uint256[] memory)
+    {
+        return pricePerType;
+    }
+    
+    
+    function buyTicket(uint256[] memory seatNo/*, uint256 amt*/) eventExists inTime public payable
     {
         bool check = true;
         uint256 amt = 0;
@@ -106,11 +133,12 @@ contract EventManager
         
         wallet += amt;
         
-        emit SoldTicket(msg.sender, seatNo);
+        // emit SoldTicket(msg.sender, seatNo);
+        bookingDappManager.emitTickets(msg.sender, seatNo, eventName, eventLocation, eventStartTime);
     }
     
     
-    function cancelTicket(uint256[] memory seatNo) eventExists public payable
+    function cancelTicket(uint256[] memory seatNo) eventExists inTime public payable
     {
         bool check1 = true;
         uint256 amt = 0;
@@ -136,15 +164,23 @@ contract EventManager
             amt += pricePerType[seatTypeId[seatNo[i]]];
         }
         
-        wallet -= amt;
+        if(eventStartTime - block.timestamp <= 172800)
+        {
+            wallet -= amt.mul(80).div(100);
+            payable(msg.sender).transfer(amt.mul(80).div(100));
+        }
+        else
+        {
+            wallet -= amt;
+            payable(msg.sender).transfer(amt);
+        }
         
-        payable(msg.sender).transfer(amt);
-        
-        emit CancelledTicket(msg.sender, seatNo);
+        // emit CancelledTicket(msg.sender, seatNo);
+        bookingDappManager.emitCancel(msg.sender, seatNo, eventName, eventLocation, eventStartTime);
     }
     
     
-    function cancelEvent() onlyOwner eventExists public payable
+    function cancelEvent() onlyOwner eventExists inTime public payable
     {
         for(uint256 i=1;i<=totalSeats;i++)
         {
